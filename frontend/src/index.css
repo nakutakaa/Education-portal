@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base styles for the body */
+body {
+  font-family: 'Inter', sans-serif; /* Keep your font if you like */
+  @apply bg-gray-100 text-gray-900; /* Default light mode background and text */
+}
+
+/* Dark mode specific styles */
+.dark body {
+  @apply bg-gray-900 text-gray-100; /* Dark mode background and text */
+}
