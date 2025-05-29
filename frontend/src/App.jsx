@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css'; 
+import 'react-toastify/dist/ReactToastify.css';
+import AddCourseForm from './components/AddCourseForm'; 
 
 const API_BASE_URL = 'http://127.0.0.1:8000'; // my FastAPI backend URL
 
@@ -179,23 +180,30 @@ function App() {
 
         {/* Courses List */}
         {/* Background and shadow adjusted for dark mode */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md dark:shadow-lg">
-            <h2 className="text-2xl font-semibold text-blue-700 dark:text-blue-300 mb-4">Courses</h2>
-            {courses.length === 0 ? (
-                <p>No courses found.</p>
-            ) : (
-                <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {courses.map((course) => (
-                        // List item background and text adjusted for dark mode
-                        <li key={course.id} className="bg-green-50 dark:bg-gray-700 p-4 rounded-md shadow-sm">
-                            <p className="font-semibold text-gray-900 dark:text-gray-100">{course.title}</p>
-                            <p className="text-sm text-gray-700 dark:text-gray-300">{course.description}</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">Teacher: {course.teacher_username}</p>
-                        </li>
-                    ))}
-                </ul>
-            )}
-        </div>
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md dark:shadow-lg"> 
+
+        {/* Section for Adding New Course */}
+        <h2 className="text-2xl font-semibold text-blue-700 dark:text-blue-300 mb-4">Add New Course</h2>
+        <AddCourseForm onCourseAdded={fetchCourses} /> {/* <-- The Add Course Form */}
+
+        {/* Section for Displaying Courses List */}
+        <h2 className="text-2xl font-semibold text-blue-700 dark:text-blue-300 mt-8 mb-4">Available Courses</h2> 
+        {courses.length === 0 ? (
+            <p>No courses found.</p>
+        ) : (
+            <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {courses.map((course) => (
+                    <li key={course.id} className="bg-green-50 dark:bg-gray-700 p-4 rounded-md shadow-sm">
+                        <p className="font-semibold text-gray-900 dark:text-gray-100">{course.title}</p>
+                        <p className="text-sm text-gray-700 dark:text-gray-300">{course.description}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Teacher: {course.teacher_username}</p>
+                    </li>
+                ))}
+            </ul>
+        )}
+    </div>
+
+        
     </div>
   );
 }
