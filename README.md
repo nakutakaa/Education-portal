@@ -154,3 +154,74 @@ Test Endpoints via Swagger UI (/docs):
 
 Repository Link: https://github.com/nakutakaa/smarter-education-portal
 
+## -- FRONTEND --
+
+Frontend Application (React)
+
+This repository contains the React-based frontend application for the Smarter Education Portal. It provides a user interface to interact with the FastAPI backend, allowing for user and course management.
+### Setup and Installation
+
+Follow these steps to get the frontend application up and running on your local machine.
+Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+    Node.js: Download & Install Node.js (Includes npm)
+    npm (Node Package Manager) or Yarn: Usually comes with Node.js, or install Yarn separately.
+    Git: Download & Install Git
+
+### Installation Steps
+
+    Clone the repository:
+    If you haven't already, clone your project repository to your local machine:
+    Bash
+
+ git clone <your-repository-url>
+ cd <your-project-directory>/frontend-app
+
+ (Replace <your-repository-url> and <your-project-directory> with your actual repository and project folder names.)
+
+ Navigate to the frontend directory:
+ Ensure your terminal is in the root directory of your frontend application (where package.json is located):
+ Bash
+
+ cd <path-to-your-frontend-folder>
+
+ Install dependencies:
+ Install all the necessary npm packages for the project:
+ Bash
+
+    npm install
+    # or if you use yarn
+    # yarn install
+
+### Running the Application
+
+Once the dependencies are installed, you can start the development server.
+
+    Start the development server:
+    This command starts the Vite development server, which will open the application in your browser:
+    Bash
+
+    npm run dev
+    # or if you use yarn
+    # yarn dev
+
+    The application will typically be accessible at http://localhost:5173 (or another port if 5173 is in use).
+
+    Ensure Backend is Running:
+    The frontend communicates with the backend. Make sure your FastAPI backend is also running on http://127.0.0.1:8000 for full functionality.
+
+### Key Features
+
+    User Management: Create, list, and delete users.
+    Course Management: Create, list, edit, and delete courses.
+    Interactive Notifications: Uses react-toastify for user feedback.
+
+### Technologies Used
+
+    React: JavaScript library for building user interfaces.
+    Vite: Next-generation frontend tooling for fast development.
+    Tailwind CSS: Utility-first CSS framework for styling.
+    Axios (or native fetch API): For making HTTP requests to the backend.
+    react-toastify: For displaying toast notifications.
