@@ -1,103 +1,148 @@
-import React, { useState } from 'react';
-import { toast } from 'react-toastify'; // Assuming you have react-toastify installed
 
-function AddCourseForm({ onCourseAdded }) {
+import React, { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
+
+// This component now handles both adding and editing courses
+export default function AddCourseForm({ onCourseAdded, teachers, editingCourse, onCancelEdit, API_BASE_URL }) {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
-    const [teacherId, setTeacherId] = useState(''); // Stores the ID of the teacher
+    const [teacherId, setTeacherId] = useState(''); // State to hold the selected teacher ID
 
-    const handleSubmit = async (e) => {
-        e.preventDefault(); // Prevent default form submission
-
-        const newCourse = {
-            title,
-            description,
-            teacher_id: parseInt(teacherId), // Convert teacherId to an integer
-        };
-
-        try {
-            const response = await fetch('http://127.0.0.1:8000/courses/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(newCourse),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || 'Failed to add course');
-            }
-
-            const addedCourse = await response.json();
-            console.log('Course added successfully:', addedCourse);
-            toast.success('Course added successfully!');
-
-            // Clear the form
+    // Effect to populate form fields when editingCourse prop changes
+    useEffect(() => {
+        if (editingCourse) {
+            // When editing, populate form fields with the course's data
+            setTitle(editingCourse.title);
+            setDescription(editingCourse.description || ''); // Use empty string if description is null/undefined
+            // Ensure teacherId is set as a string for the <select> element
+            setTeacherId(editingCourse.teacher_id ? String(editingCourse.teacher_id) : '');
+        } else {
+            // When not editing (e.g., after successful add/edit or cancel), clear form fields
             setTitle('');
             setDescription('');
             setTeacherId('');
+        }
+    }, [editingCourse]); // This effect runs whenever the editingCourse prop changes
 
-            // Notify parent component (App.jsx) that a new course was added
-            // This will trigger a re-fetch of courses in App.jsx
-            if (onCourseAdded) {
-                onCourseAdded();
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        if (!title || !teacherId) {
+            toast.error("Title and Teacher must be provided.");
+            return;
+        }
+
+        const courseData = {
+            title: title,
+            description: description,
+            teacher_id: parseInt(teacherId, 10), // Ensure teacher_id is an integer for the API
+        };
+
+        try {
+            let response;
+            if (editingCourse) {
+                // If editingCourse exists, it's an update operation (PUT request)
+                response = await fetch(`${API_BASE_URL}/courses/${editingCourse.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(courseData),
+                });
+            } else {
+                // Otherwise, it's a create operation (POST request)
+                response = await fetch(`${API_BASE_URL}/courses/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(courseData),
+                });
             }
 
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+            }
+
+            // Clear form fields and notify parent component
+            setTitle('');
+            setDescription('');
+            setTeacherId('');
+            onCourseAdded(); // Trigger re-fetch of courses in App.jsx
+
+            // Handle success messages and clear editing state
+            if (editingCourse) {
+                onCancelEdit(); // Clear editing state in parent after successful update
+                toast.success("Course updated successfully!");
+            } else {
+                toast.success("Course created successfully!");
+            }
         } catch (error) {
-            console.error('Error adding course:', error.message);
-            toast.error(`Error adding course: ${error.message}`);
+            console.error("Error submitting course:", error);
+            toast.error(`Failed to ${editingCourse ? 'update' : 'create'} course: ${error.message}`);
         }
     };
 
     return (
-        <div className="add-course-form-container p-4 bg-gray-700 rounded-lg shadow-lg">
-            <h2 className="text-xl font-bold mb-4 text-white">Add New Course</h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                    <label htmlFor="title" className="block text-sm font-medium text-gray-300">Title:</label>
-                    <input
-                        type="text"
-                        id="title"
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        required
-                        className="mt-1 block w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md text-white shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    />
-                </div>
-                <div>
-                    <label htmlFor="description" className="block text-sm font-medium text-gray-300">Description:</label>
-                    <textarea
-                        id="description"
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        required
-                        className="mt-1 block w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md text-white shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    ></textarea>
-                </div>
-                <div>
-                    <label htmlFor="teacherId" className="block text-sm font-medium text-gray-300">Teacher ID:</label>
-                    <input
-                        type="number" // Use type="number" for IDs
-                        id="teacherId"
-                        value={teacherId}
-                        onChange={(e) => setTeacherId(e.target.value)}
-                        required
-                        className="mt-1 block w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md text-white shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    />
-                    <p className="text-gray-400 text-sm mt-1">
-                        **Note:** Ensure this ID belongs to an existing user with 'teacher' or 'admin' role.
-                    </p>
-                </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+                <label htmlFor="courseTitle" className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">Course Title:</label>
+                <input
+                    type="text"
+                    id="courseTitle"
+                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-900 leading-tight focus:outline-none focus:shadow-outline"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="e.g., Advanced React"
+                    required
+                />
+            </div>
+            <div>
+                <label htmlFor="courseDescription" className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">Description:</label>
+                <textarea
+                    id="courseDescription"
+                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-900 leading-tight focus:outline-none focus:shadow-outline"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    rows="3"
+                    placeholder="A comprehensive course on..."
+                ></textarea>
+            </div>
+            <div>
+                <label htmlFor="courseTeacher" className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">Teacher:</label>
+                <select
+                    id="courseTeacher"
+                    className="shadow border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-900 leading-tight focus:outline-none focus:shadow-outline"
+                    value={teacherId} // This value must match one of the <option> values
+                    onChange={(e) => setTeacherId(e.target.value)}
+                    required
+                >
+                    <option value="">Select a Teacher</option>
+                    {teachers.map((user) => (
+                        <option key={user.id} value={user.id}> {/* Option value is the numeric ID */}
+                            {user.username} ({user.role})
+                        </option>
+                    ))}
+                </select>
+            </div>
+            <div className="flex justify-end space-x-3">
+                {editingCourse && (
+                    <button
+                        type="button"
+                        onClick={onCancelEdit}
+                        className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                    >
+                        Cancel Edit
+                    </button>
+                )}
                 <button
                     type="submit"
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
                 >
-                    Add Course
+                    {editingCourse ? 'Update Course' : 'Add Course'}
                 </button>
-            </form>
-        </div>
+            </div>
+        </form>
     );
 }
-
-export default AddCourseForm;

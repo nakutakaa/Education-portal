@@ -1,9 +1,10 @@
+
 import { useState, useEffect } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import AddCourseForm from './components/AddCourseForm'; 
+import AddCourseForm from './components/AddCourseForm'; // Your existing AddCourseForm component
 
-const API_BASE_URL = 'http://127.0.0.1:8000'; // my FastAPI backend URL
+const API_BASE_URL = 'http://127.0.0.1:8000'; // Your FastAPI backend URL
 
 function App() {
   const [users, setUsers] = useState([]);
@@ -12,6 +13,8 @@ function App() {
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserPassword, setNewUserPassword] = useState('');
   const [newUserRole, setNewUserRole] = useState('student'); // Default role
+  // State to hold the course currently being edited (null if not editing)
+  const [editingCourse, setEditingCourse] = useState(null);
 
   // --- Fetch Users ---
   const fetchUsers = async () => {
@@ -21,7 +24,10 @@ function App() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      setUsers(data);
+      // Filter users to only include teachers or admins for the course form dropdown
+      const teachers = data.filter(user => user.role === 'teacher' || user.role === 'admin');
+      setUsers(data); // Keep all users for the user list
+      // We'll pass the filtered teachers to AddCourseForm later
     } catch (error) {
       console.error('Error fetching users:', error);
       toast.error('Failed to fetch users!');
@@ -74,17 +80,92 @@ function App() {
       setNewUserEmail('');
       setNewUserPassword('');
       setNewUserRole('student');
+      fetchUsers(); // Re-fetch users to update teacher dropdown if a teacher was added
     } catch (error) {
       console.error('Error creating user:', error);
       toast.error(`Failed to create user: ${error.message}`);
     }
   };
 
+  // --- Delete User Function ---
+  const handleDeleteUser = async (userId) => {
+    // Confirmation dialog to prevent accidental deletions
+    if (!window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+      return; // Stop if the user cancels
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+        method: 'DELETE', // Specify the DELETE HTTP method
+      });
+
+      if (!response.ok) {
+        if (response.status !== 204) {
+             const errorData = await response.json();
+             throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+        }
+      }
+
+      setUsers(users.filter(user => user.id !== userId));
+      toast.success('User deleted successfully!');
+      fetchCourses(); // Re-fetch courses in case a teacher associated with courses was deleted
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      toast.error(`Failed to delete user: ${error.message}`);
+    }
+  };
+
+  // --- NEW: Delete Course Function ---
+  const handleDeleteCourse = async (courseId) => {
+    if (!window.confirm("Are you sure you want to delete this course?")) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/courses/${courseId}`, {
+            method: 'DELETE',
+        });
+
+        if (!response.ok) {
+            if (response.status === 204) {
+                toast.success("Course deleted successfully!");
+                fetchCourses();
+                return;
+            }
+            const errorData = await response.json();
+            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+        }
+
+        toast.success("Course deleted successfully!");
+        fetchCourses();
+    } catch (error) {
+        console.error("Error deleting course:", error);
+        toast.error(`Failed to delete course: ${error.message}`);
+    }
+  };
+
+  // --- NEW: Edit Course Handler ---
+  const handleEditCourse = (course) => {
+    setEditingCourse(course); // Set the course to be edited
+    // The AddCourseForm will receive this prop and populate its fields
+    toast.info(`Editing course: ${course.title}`);
+  };
+
+  // --- NEW: Cancel Edit Handler ---
+  const handleCancelEdit = () => {
+    setEditingCourse(null); // Clear editing state
+    toast.info("Cancelled course edit.");
+  };
+
   // --- Initial Data Fetch ---
   useEffect(() => {
     fetchUsers();
     fetchCourses();
-  }, []); // Empty dependency array means this runs once on mount
+  }, []);
+
+  // Filter users to only include teachers or admins for the AddCourseForm dropdown
+  const teachersForCourseForm = users.filter(user => user.role === 'teacher' || user.role === 'admin');
+
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-8">
@@ -96,7 +177,6 @@ function App() {
         <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
 
         {/* User Creation Form */}
-        {/* Background and shadow adjusted for dark mode */}
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md dark:shadow-lg mb-8">
             <h2 className="text-2xl font-semibold text-blue-700 dark:text-blue-300 mb-4">Create New User</h2>
             <form onSubmit={handleCreateUser} className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -105,7 +185,6 @@ function App() {
                     <input
                         type="text"
                         id="username"
-                        // Input field styles: Adjusted for dark mode text/background
                         className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-900 leading-tight focus:outline-none focus:shadow-outline"
                         value={newUserName}
                         onChange={(e) => setNewUserName(e.target.value)}
@@ -138,7 +217,6 @@ function App() {
                     <label htmlFor="role" className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">Role:</label>
                     <select
                         id="role"
-                        // Select field styles: Adjusted for dark mode text/background
                         className="shadow border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-900 leading-tight focus:outline-none focus:shadow-outline"
                         value={newUserRole}
                         onChange={(e) => setNewUserRole(e.target.value)}
@@ -160,7 +238,6 @@ function App() {
         </div>
 
         {/* Users List */}
-        {/* Background and shadow adjusted for dark mode */}
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md dark:shadow-lg mb-8">
             <h2 className="text-2xl font-semibold text-blue-700 dark:text-blue-300 mb-4">Users</h2>
             {users.length === 0 ? (
@@ -168,42 +245,70 @@ function App() {
             ) : (
                 <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {users.map((user) => (
-                        // List item background and text adjusted for dark mode
-                        <li key={user.id} className="bg-blue-50 dark:bg-gray-700 p-4 rounded-md shadow-sm">
-                            <p className="font-semibold text-gray-900 dark:text-gray-100">{user.username} ({user.role})</p>
-                            <p className="text-sm text-gray-600 dark:text-gray-300">{user.email}</p>
+                        <li key={user.id} className="bg-blue-50 dark:bg-gray-700 p-4 rounded-md shadow-sm flex justify-between items-center">
+                            <div>
+                                <p className="font-semibold text-gray-900 dark:text-gray-100">{user.username} ({user.role})</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-300">{user.email}</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">ID: {user.id}</p>
+                            </div>
+                            <button
+                                onClick={() => handleDeleteUser(user.id)}
+                                className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-3 rounded text-sm focus:outline-none focus:shadow-outline"
+                            >
+                                Delete
+                            </button>
                         </li>
                     ))}
                 </ul>
             )}
         </div>
 
-        {/* Courses List */}
-        {/* Background and shadow adjusted for dark mode */}
+        {/* Courses Section */}
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md dark:shadow-lg"> 
+            {/* Section for Adding/Editing Course */}
+            <h2 className="text-2xl font-semibold text-blue-700 dark:text-blue-300 mb-4">
+                {editingCourse ? 'Edit Course' : 'Add New Course'}
+            </h2>
+            <AddCourseForm
+                onCourseAdded={fetchCourses}
+                teachers={teachersForCourseForm} // Pass filtered teachers to the form
+                editingCourse={editingCourse} // Pass the course being edited
+                onCancelEdit={handleCancelEdit} // Pass cancel edit handler
+                API_BASE_URL={API_BASE_URL} // Pass API URL
+            />
 
-        {/* Section for Adding New Course */}
-        <h2 className="text-2xl font-semibold text-blue-700 dark:text-blue-300 mb-4">Add New Course</h2>
-        <AddCourseForm onCourseAdded={fetchCourses} /> {/* <-- The Add Course Form */}
-
-        {/* Section for Displaying Courses List */}
-        <h2 className="text-2xl font-semibold text-blue-700 dark:text-blue-300 mt-8 mb-4">Available Courses</h2> 
-        {courses.length === 0 ? (
-            <p>No courses found.</p>
-        ) : (
-            <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {courses.map((course) => (
-                    <li key={course.id} className="bg-green-50 dark:bg-gray-700 p-4 rounded-md shadow-sm">
-                        <p className="font-semibold text-gray-900 dark:text-gray-100">{course.title}</p>
-                        <p className="text-sm text-gray-700 dark:text-gray-300">{course.description}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">Teacher: {course.teacher_username}</p>
-                    </li>
-                ))}
-            </ul>
-        )}
-    </div>
-
-        
+            {/* Section for Displaying Courses List */}
+            <h2 className="text-2xl font-semibold text-blue-700 dark:text-blue-300 mt-8 mb-4">Available Courses</h2> 
+            {courses.length === 0 ? (
+                <p>No courses found.</p>
+            ) : (
+                <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {courses.map((course) => (
+                        <li key={course.id} className="bg-green-50 dark:bg-gray-700 p-4 rounded-md shadow-sm flex justify-between items-center">
+                            <div>
+                                <p className="font-semibold text-gray-900 dark:text-gray-100">{course.title}</p>
+                                <p className="text-sm text-gray-700 dark:text-gray-300">{course.description}</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">Teacher: {course.teacher_username || 'N/A'}</p>
+                            </div>
+                            <div className="flex space-x-2">
+                                <button
+                                    onClick={() => handleEditCourse(course)}
+                                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-sm focus:outline-none focus:shadow-outline"
+                                >
+                                    Edit
+                                </button>
+                                <button
+                                    onClick={() => handleDeleteCourse(course.id)}
+                                    className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-3 rounded text-sm focus:outline-none focus:shadow-outline"
+                                >
+                                    Delete
+                                </button>
+                            </div>
+                        </li>
+                    ))}
+                </ul>
+            )}
+        </div>
     </div>
   );
 }
