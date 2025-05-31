@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python/
+
+# Virtual environment
+venv/
+.venv/
+env/
+.env/
+
+# IDEs
+.vscode/
+.idea/
+
+# Operating System files
+.DS_Store
+Thumbs.db
+
+# Database files (if using SQLite)
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs and temporary files
+*.log
+*.tmp
+
+# Environment variables (if you create a .env file for secrets)
+.env
