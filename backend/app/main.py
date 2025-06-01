@@ -99,7 +99,7 @@ def create_course(course: schemas.CourseCreate, db: Session = Depends(get_db)):
     
     # Populate teacher_username for the response model
     # Changed from_attributes to from_orm
-    response_course = schemas.CourseResponse.from_orm(db_course)
+    response_course = schemas.CourseResponse.from_attributes(db_course)
     response_course.teacher_username = teacher.username
     return response_course
 
