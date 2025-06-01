@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 
-// This component now handles both adding and editing courses
+// handles both adding and editing courses
 export default function AddCourseForm({ onCourseAdded, teachers, editingCourse, onCancelEdit, API_BASE_URL }) {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');

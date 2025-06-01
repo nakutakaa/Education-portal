@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import AddCourseForm from './components/AddCourseForm'; // Your existing AddCourseForm component
+import AddCourseForm from './components/AddCourseForm'; // my existing AddCourseForm component
 
 const API_BASE_URL = 'http://127.0.0.1:8000'; // Your FastAPI backend URL
 
