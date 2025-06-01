@@ -152,7 +152,7 @@ Test Endpoints via Swagger UI (/docs):
 
 ```bash
 
-Repository Link: https://github.com/nakutakaa/smarter-education-portal
+Repository Link: git@github.com:nakutakaa/Education-portal.git
 
 ## -- FRONTEND --
 
@@ -192,8 +192,6 @@ Before you begin, ensure you have the following installed:
  Bash
 
     npm install
-    # or if you use yarn
-    # yarn install
 
 ### Running the Application
 
@@ -204,8 +202,6 @@ Once the dependencies are installed, you can start the development server.
     Bash
 
     npm run dev
-    # or if you use yarn
-    # yarn dev
 
     The application will typically be accessible at http://localhost:5173 (or another port if 5173 is in use).
 
