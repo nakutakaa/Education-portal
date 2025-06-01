@@ -36,7 +36,7 @@ The Smarter Education Portal aims to provide a basic platform for managing users
 - **Data Seeding:** Script to populate initial database data for development.
 - **Interactive API Docs:** Auto-generated Swagger UI (`/docs`) and Redoc (`/redoc`).
 
-### Frontend (To be implemented)
+### Frontend 
 - Display list of users.
 - Display list of courses.
 - Form to create new users.
