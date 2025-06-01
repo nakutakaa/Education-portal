@@ -35,7 +35,7 @@ class CourseCreate(CourseBase):
 class CourseResponse(CourseBase):
     """Schema for returning Course data."""
     id: int
-    # *** THIS IS THE CRUCIAL FIX ***
+    # *** FIX ***
     # Make teacher_id optional when reading from the database,
     # as some existing records might have it as None.
     teacher_id: Optional[int]

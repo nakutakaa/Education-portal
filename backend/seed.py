@@ -1,21 +1,20 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from app.models import User, Course # Import your models
-from app.database import Base # Import Base for database connection (optional, but good practice)
+from app.models import User, Course # Imports my models
 import os
 from dotenv import load_dotenv
 
-# Load environment variables from the .env file
+# Loads environment variables from the .env file
 load_dotenv()
 
-# Get database URL from environment variable, with a fallback for safety
+# Get database URL from environment variable
 SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./app/test.db")
 
 # Setup the SQLAlchemy engine
 # Using connect_args for SQLite to avoid threading issues in some contexts
 engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
 
-# Setup a sessionmaker, similar to what we have in database.py
+# Setup a sessionmaker, similar to what I have in database.py
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def seed_data():
@@ -24,18 +23,13 @@ def seed_data():
     try:
         print("\n--- Seeding Database ---")
 
-        # --- Optional: Uncomment the line below if you want to create tables using models.py directly
-        # This is typically used for very simple projects without Alembic.
-        # With Alembic, schema management is separate.
-        # Base.metadata.create_all(bind=engine)
 
-        # --- Clear existing data for consistent seeding ---
-        # It's good practice to delete child records (Courses) before parent records (Users)
+        # --- Clears existing data for consistent seeding ---
         # if there are foreign key constraints, to avoid errors.
         print("Clearing existing data...")
         db.query(Course).delete()
         db.query(User).delete()
-        db.commit() # Commit the deletions
+        db.commit() # Commits the deletions
         print("Existing data cleared.")
 
         # --- Create Users ---
@@ -43,7 +37,7 @@ def seed_data():
         admin_user = User(
             username="admin_user",
             email="admin@smarteredu.com",
-            hashed_password="adminpassword", # Placeholder: In real app, this would be hashed
+            hashed_password="adminpassword", # Placeholder: In real app
             role="admin"
         )
         teacher_user = User(
@@ -61,7 +55,7 @@ def seed_data():
 
         db.add_all([admin_user, teacher_user, student_user]) # Add users to the session
         db.commit() # Commit the users to the database
-        # Refresh objects to get their database-assigned IDs (crucial for foreign keys)
+        # Refresh objects to get their database-assigned IDs
         db.refresh(admin_user)
         db.refresh(teacher_user)
         db.refresh(student_user)
